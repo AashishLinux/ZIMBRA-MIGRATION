@@ -1,1 +1,114 @@
-code
+#!/bin/bash
+#DOMAINS_AND_ACCOUNTS_MIGRATION
+#OWNER:- AASHISH CHAURASIYA
+#CREATED_ON:- 30/10/2021
+echo "EXECUTION STARTED OF $0"
+echo "STARTED WITH PID $$"
+mkdir /tmp/migration 2>/dev/null
+zmprov -l gad >> /tmp/migration/DOMAINS_MIG.txt
+echo ""
+echo "-----------------------------------------------------"
+echo ""
+for i in `cat /tmp/migration/DOMAINS_MIG.txt`
+do
+echo "cd $i" >> /tmp/migration/AB_HO_JA_SALE.txt
+done
+
+echo "DOMAIN DONE"
+echo ""
+echo "10% DONE"
+echo "-----------------------------------------------------"
+echo ""
+zmprov -l gaa >> /tmp/migration/ALL_ACCOUNTS.txt
+
+for i in `cat /tmp/migration/ALL_ACCOUNTS.txt`
+do
+if [[ $i = galsync* ]]
+then
+    echo "galsync IGNORED"
+else
+    echo "ca $i @@AAaa123" >> /tmp/migration/AB_HO_JA_SALE.txt
+fi
+done
+
+echo ""
+echo "ACCOUNTS DONE"
+echo ""
+echo "50% DONE"
+echo ""
+echo "-----------------------------------------------------"
+echo ""
+
+for i in `cat /tmp/migration/ALL_ACCOUNTS.txt`
+do
+if [[ $i = galsync* ]]
+then
+    echo "galsync ignored"
+else
+    echo "ga $i userpassword" >> /tmp/migration/ACC_USERPASSWD.txt
+fi
+done
+
+
+echo "60% DONE"
+
+zmprov -l -f /tmp/migration/ACC_USERPASSWD.txt >> /tmp/migration/PAKKA_WALA_MIG.txt
+cat /tmp/migration/PAKKA_WALA_MIG.txt |grep userPassword | awk '{print $2}' >> /tmp/migration/ENC_PASSWORD
+cat /tmp/migration/PAKKA_WALA_MIG.txt | grep name | awk '{print $4}' >> /tmp/migration/ENC_USERNAME
+
+echo "80% DONE"
+for i in `cat /tmp/migration/ENC_USERNAME`
+do
+echo "ma $i userpassword" >> /tmp/migration/USERPASSWORD2.txt
+done
+echo "`paste /tmp/migration/USERPASSWORD2.txt /tmp/migration/ENC_PASSWORD`" >> /tmp/migration/AB_HO_JA_SALE.txt
+
+echo ""
+echo ""
+echo "FILE CREATED /tmp/migration/AB_HO_JA_SALE.txt"
+
+echo ""
+echo ""
+echo "100% DONE"
+
+#RM -RF
+
+rm -rf /tmp/migration/ALL_ACCOUNTS.txt
+rm -rf /tmp/migration/ENC_PASSWORD
+rm -rf /tmp/migration/PAKKA_WALA_MIG.txt
+rm -rf /tmp/migration/ACC_USERPASSWD.txt
+rm -rf /tmp/migration/DOMAINS_MIG.txt
+rm -rf /tmp/migration/ENC_USERNAME
+rm -rf /tmp/migration/USERPASSWORD2.txt
+echo "ALL RESIDUE FILES HAVE BEEN CLEANED"
+echo ""
+echo "rsync -avh /tmp/migration/AB_HO_JA_SALE.txt \"NEW SERVER'S IP HERE\""
+echo ""
+echo "EXECUTION COMPLETED OF $0"
+
+echo "NOW EXPORTING DL_LIST_DATA"
+
+mkdir -p /tmp/dl 2> /dev/null
+echo "--------------------------------EXPORTING DATA OF DL LISTS-------------------------------------"
+echo ""
+echo "SCRIPT $? STARTED WITH PID $$"
+
+zmprov -l gadl >> /tmp/dl/DL_LIST.txt
+c=1
+for i in `cat /tmp/dl/DL_LIST.txt`
+do
+echo "$i IS DONE AT $c LOOP "
+echo "`zmprov -l gdlm $i`" >> /tmp/dl/dl_list_mem_$c.txt
+echo "cdl $i" >> /tmp/migration/AB_HO_JA_SALE.txt
+echo " adlm $i `cat /tmp/dl/dl_list_mem_$c.txt | grep -ve member -e '^$' | paste -s`" >> /tmp/migration/AB_HO_JA_SALE.txt
+c=$((c+1))
+done
+echo ""
+echo "MIGRATION OF DL IS READY /tmp/migration/AB_HO_JA_SALE.txt"
+echo ""
+#RM -RF
+echo "CLEANING ALL RESIDUE"
+echo ""
+rm -rf /tmp/dl/DL_LIST.txt /tmp/dl/dl_list_mem_*.txt
+echo "EXPORTATION IS DONE AND FILE IS READY  /tmp/migration/AB_HO_JA_SALE.txt"
+rm -rf /tmp/dl
